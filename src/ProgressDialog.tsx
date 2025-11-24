@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TransferTask, useTransferQueue } from "./app/transferQueue";
 import { humanReadableSize } from "./app/utils";
 import {
@@ -29,12 +29,26 @@ function ProgressDialog({
   const [tab, setTab] = useState(0);
   const transferQueue: TransferTask[] = useTransferQueue();
 
-  const tasks = useMemo(() => {
-    const taskType = tab === 0 ? "download" : "upload";
-    return Object.values(transferQueue).filter(
-      (task) => task.type === taskType
+  const { downloads, uploads } = useMemo(() => {
+    return transferQueue.reduce(
+      (acc, task) => {
+        if (task.type === "download") acc.downloads.push(task);
+        else acc.uploads.push(task);
+        return acc;
+      },
+      { downloads: [] as TransferTask[], uploads: [] as TransferTask[] }
     );
-  }, [tab, transferQueue]);
+  }, [transferQueue]);
+
+  const hasDownloads = downloads.length > 0;
+  const hasUploads = uploads.length > 0;
+
+  useEffect(() => {
+    if (tab === 0 && !hasDownloads && hasUploads) setTab(1);
+    else if (tab === 1 && !hasUploads && hasDownloads) setTab(0);
+  }, [tab, hasDownloads, hasUploads]);
+
+  const tasks = tab === 0 ? downloads : uploads;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
@@ -44,13 +58,13 @@ function ProgressDialog({
         onChange={(_, newTab) => setTab(newTab)}
         sx={{ "& .MuiTab-root": { flexBasis: "50%" } }}
       >
-        <Tab label="Downloads" />
-        <Tab label="Uploads" />
+        <Tab label={`Downloads (${downloads.length})`} />
+        <Tab label={`Uploads (${uploads.length})`} />
       </Tabs>
       {tasks.length === 0 ? (
         <DialogContent>
           <Typography textAlign="center" color="text.secondary">
-            No tasks
+            {tab === 0 ? "No downloads" : "No uploads"}
           </Typography>
         </DialogContent>
       ) : (
