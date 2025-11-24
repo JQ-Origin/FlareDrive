@@ -1,11 +1,11 @@
 import {
-  CircularProgress,
+  Box,
   Dialog,
   DialogContent,
   DialogTitle,
+  LinearProgress,
   List,
   ListItem,
-  ListItemText,
   Tab,
   Tabs,
   Tooltip,
@@ -57,25 +57,43 @@ function ProgressDialog({
         <DialogContent sx={{ padding: 0 }}>
           <List>
             {tasks.map((task) => (
-              <ListItem key={task.name}>
-                <ListItemText
-                  primary={task.name}
-                  secondary={`${humanReadableSize(
-                    task.loaded
-                  )} / ${humanReadableSize(task.total)}`}
-                />
+              <ListItem key={task.name} alignItems="flex-start">
+                <Box sx={{ flexGrow: 1, paddingRight: 2 }}>
+                  <Typography variant="body2" fontWeight={600} noWrap>
+                    {task.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {humanReadableSize(task.loaded)} / {humanReadableSize(task.total)}
+                  </Typography>
+                  <LinearProgress
+                    sx={{ marginTop: 1 }}
+                    variant={
+                      task.status === "pending" ? "indeterminate" : "determinate"
+                    }
+                    value={
+                      task.status === "in-progress"
+                        ? task.total
+                          ? Math.min(100, (task.loaded / task.total) * 100)
+                          : 0
+                        : task.status === "completed" || task.status === "failed"
+                        ? 100
+                        : undefined
+                    }
+                    color={
+                      task.status === "failed"
+                        ? "error"
+                        : task.status === "completed"
+                        ? "success"
+                        : "primary"
+                    }
+                  />
+                </Box>
                 {task.status === "failed" ? (
-                  <Tooltip title={task.error.message}>
+                  <Tooltip title={task.error?.message ?? "Failed"}>
                     <ErrorOutlineIcon color="error" />
                   </Tooltip>
                 ) : task.status === "completed" ? (
                   <CheckCircleOutlineIcon color="success" />
-                ) : task.status === "in-progress" ? (
-                  <CircularProgress
-                    variant="determinate"
-                    size={24}
-                    value={(task.loaded / task.total) * 100}
-                  />
                 ) : null}
               </ListItem>
             ))}

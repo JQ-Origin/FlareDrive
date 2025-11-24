@@ -11,6 +11,7 @@ import React, { useState } from "react";
 import Header from "./Header";
 import Main from "./Main";
 import ProgressDialog from "./ProgressDialog";
+import UploadProgressBar from "./UploadProgressBar";
 import { TransferQueueProvider } from "./app/transferQueue";
 
 const globalStyles = (
@@ -49,6 +50,7 @@ function App() {
           open={showProgressDialog}
           onClose={() => setShowProgressDialog(false)}
         />
+        <UploadProgressBar />
       </TransferQueueProvider>
     </ThemeProvider>
   );
